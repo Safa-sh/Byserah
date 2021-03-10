@@ -2,7 +2,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 from tkinter import filedialog
 root = Tk()
-def uploadImagebtnFunction():
+def  uploadImagebtnFunction():
     root.filename = filedialog.askopenfilename(initialdir="\Interfaces\images",
                                                title="Select an image", filetype=
                                          (("png files", "*.png"), ("all files", "*.*")))
