@@ -3,16 +3,25 @@ from PIL import ImageTk, Image
 from tkinter import filedialog
 root = Tk()
 def  uploadImagebtnFunction():
-    root.filename = filedialog.askopenfilename(initialdir="\Interfaces\images",
-                                               title="Select an image", filetype=
-                                         (("png files", "*.png"), ("all files", "*.*")))
+    new_window=Toplevel(root)
+    app_width = 350
+    app_height = 300
+    screen_width = new_window.winfo_screenwidth()
+    screen_height = new_window.winfo_screenheight()
+    x = (screen_width / 2) - (app_width / 2)
+    y = (screen_height / 2) - (app_height / 2)
+    new_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+    new_window.resizable(width=False, height=False)
+    new_window.configure(bg='white')
+    new_window.title("chosse ")
+    new_window.iconbitmap('images/logo.ico')
 
-def donResbtnFunction():
-    print(" ")
+    ##root.filename = filedialog.askopenfilename(initialdir="\Interfaces\images",
+                                ##               title="Select an image", filetype=
+                                     ##    (("png files", "*.png"), ("all files", "*.*")))
 
 
 def main():
-
     # Main window
     app_width = 800
     app_height = 600
@@ -42,9 +51,14 @@ def main():
     my_canvas.pack(pady=90)
     # Buttons
     UploadImagebtn = Button(root, text="Upload Image",width=20,height=2,command=uploadImagebtnFunction,bg="white").place(x=90, y=450)
-    DonResbtn = Button(root, text="Download result",width=20,height=2,bg="white",command=donResbtnFunction).place(x=550, y=450)
+    DonResbtn = Button(root, text="Download result",width=20,height=2,bg="white").place(x=550, y=450)
     root.mainloop()
 
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
