@@ -15,10 +15,23 @@ def  uploadImagebtnFunction():
     new_window.configure(bg='white')
     new_window.title("chosse ")
     new_window.iconbitmap('images/logo.ico')
-
+    welcomLebal = Label(new_window, text="WELCOME TO BASYRAH", font=('Calibri', 14), bg="white")
+    welcomLebal.place(x=80, y=10)
+    # line drawn
+    my_canvas = Canvas(new_window, width=300, height=10, bg="white")
+    my_canvas.create_line(0, 10, 300, 10, fill="purple")
+    my_canvas.pack(pady=50)
+    option=IntVar()
+    option.get()
+    Radiobutton(new_window,text="New patient",font=('Calibri', 14),variable=option,value=1).pack()
+    Radiobutton(new_window, text="Previous patient.", font=('Calibri', 14), variable=option, value=2).pack()
+    submitbtn=Button(new_window,text="Submit",width=15,height=1,bg="white").pack()
+    submitbtn.place(x=150, y=150)
     ##root.filename = filedialog.askopenfilename(initialdir="\Interfaces\images",
                                 ##               title="Select an image", filetype=
                                      ##    (("png files", "*.png"), ("all files", "*.*")))
+def donResbtnFunction():
+
 
 
 def main():
@@ -51,7 +64,7 @@ def main():
     my_canvas.pack(pady=90)
     # Buttons
     UploadImagebtn = Button(root, text="Upload Image",width=20,height=2,command=uploadImagebtnFunction,bg="white").place(x=90, y=450)
-    DonResbtn = Button(root, text="Download result",width=20,height=2,bg="white").place(x=550, y=450)
+    DonResbtn = Button(root, text="Download result",width=20,height=2,command=donResbtnFunction bg="white").place(x=550, y=450)
     root.mainloop()
 
 
