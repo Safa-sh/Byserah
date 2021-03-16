@@ -30,7 +30,7 @@ def  uploadImagebtnFunction():
     ##root.filename = filedialog.askopenfilename(initialdir="\Interfaces\images",
                                 ##               title="Select an image", filetype=
                                      ##    (("png files", "*.png"), ("all files", "*.*")))
-def donResbtnFunction():
+
 
 
 
