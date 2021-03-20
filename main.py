@@ -2,7 +2,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 from tkinter import filedialog
 import tkinter.messagebox as tmsg
-import sqlite3 as sq
+import mysql.connector as mysql
 from collections import OrderedDict
 import webbrowser as wb
 root = Tk()
@@ -42,91 +42,112 @@ def designTem(Tk,app_width,app_height):
 #     patientID.pack()
 #     submtbtn = Button(patientID_window, text="Submit", width=15, height=1, bg="white",command=checkSubmit())
 #     submtbtn.place(x=110, y=230)
+class testframe:
+    def startCon(self):
+         con = mysql.connect(
+            host="localhost",
+            port="3308",
+            user="root",
+            passwd="8977749",
+            database="basyrah")
+
+         return con
+    def __init__(self,root,type_p):
+        self.patientTest_window= Toplevel(root, bg="white")
+        self.patientTest_window .geometry('500x500')
+        self.patientTest_window .title("patientTest_window")
+        # labal1 = Label(self.patientID_window, text="patientTest_window", font=('Calibri', 14), bg="white")
+        # labal1.place(x=90, y=5)
+        self.con = mysql.connect(
+            host="localhost",
+            port="3308",
+            user="root",
+            passwd="8977749",
+            database="basyrah")
+        self.P_ID= StringVar()
+        self.type_p=int()
+        self.View()
+
+    def View(self):
+
+        designTem(self.patientTest_window, 300, 300)
+        NewTestbtn = Button(self.patientTest_window, text="new test ", width=15, height=1, bg="white")
+        NewTestbtn.place(x=110, y=130)
+        showPreResbtn = Button(self.patientTest_window, text="show previous result", width=15, height=1, bg="white")
+        showPreResbtn.place(x=110, y=260)
+        if (self.type_p == 1):
+            showPreResbtn.configure(state=DISABLED)
+        else:
+             showPreResbtn.configure(state=NORMAL)
+
+
+
+
+
+
+
+
 class  patientDB:
-    def conStart(self):
 
-        con = sq.connect("basyrah.db")
-        cursor = con.cursor()
-        cursor.execute("""
-           CREATE TABLE IF NOT EXISTS patient (
-           patient_id TEXT PRIMARY KEY ,
-           total_checkup INTEGER DEFAULT ZEROFILL
-           
-            )
-        """)
-        cursor.execute("""
-                            CREATE TABLE IF NOT EXISTS checkup(
-                             checkup_id TEXT NOT NULL ,
-                             patientID TEXT NOT NULL,
-                             checkup_result TEXT NOT NULL,
-                            PRIMARY KEY (checkup_id),
-                            FOREIGN KEY (patientID) REFERENCES patient (patient_id) ON DELETE CASCADE ON UPDATE CASCADE)
-                               """)
+    def startCon(self):
+         con = mysql.connect(
+            host="localhost",
+            port="3308",
+            user="root",
+            passwd="8977749",
+            database="basyrah")
 
+         return con
 
-        con.commit()
-        con.close()
     def __init__(self,root,title,chooseNu):
         self.patientID_window= Toplevel(root, bg="white")
         self.patientID_window .geometry('500x500')
         self.patientID_window .title(title)
         labal1 = Label(self.patientID_window, text=title, font=('Calibri', 14), bg="white")
         labal1.place(x=90, y=5)
-        self.chooseNu=int
-        self.conStart()
+        self.P_ID= StringVar()
+        self.chooseNu=int()
         self.View()
-
-        self.patientID = StringVar()
-
-
     def View(self):
-
-       designTem(self.patientID_window, 300, 300)
-
-       def on_click(event):
+      designTem(self.patientID_window, 300, 300)
+      def on_click(event):
          patientIDEntry .configure(state=NORMAL)
          patientIDEntry .delete(0, END)
          patientIDEntry .unbind('<Button-1>', on_click_id)
-       patientIDEntry = Entry(self.patientID_window, width=30, font=('Calibri', 12))
-       patientIDEntry .insert(0, "Enter PatientID. ")
-       patientIDEntry .configure(state=DISABLED)
-       on_click_id = patientIDEntry.bind('<Button-1>', on_click)
-       patientIDEntry .pack()
-       patientIDEn=patientIDEntry.get()
-       submtbtn = Button(self.patientID_window, text="Submit", width=15, height=1, bg="white",command=self.find_patientID(patientIDEn))
-       submtbtn.place(x=110, y=230)
 
-
+      patientIDEntry = Entry(self.patientID_window, width=30, font=('Calibri', 12),textvariable = self.P_ID)
+      patientIDEntry .insert(0, "Enter PatientID. ")
+      patientIDEntry .configure(state=DISABLED)
+      on_click_id = patientIDEntry.bind('<Button-1>', on_click)
+      patientIDEntry.pack()
+      submtbtn = Button(self.patientID_window, text="Submit", width=15, height=1, bg="white",command=self.find_patientID)
+      submtbtn.place(x=110, y=230)
     # =============================find_patientID
-    def find_patientID(self,Id_p):
-        con = sq.connect("basyrah.db")
-        cursor = con.cursor()
-        cursor.execute("SELECT * FROM patient")
-        data = cursor.fetchall()
-        data_imp = OrderedDict(data)
-        if ( Id_p in data_imp.keys()) :
-            if (self.chooseNu == 1):
-                tmsg.showerror("Error"," patient ID Already Found")
-            else:
-                self.add_New_patient(Id_p)
-                tmsg.showinfo('Login Succeesful', "Thanks For Coming Back")
-                #Testframe/window
+    def find_patientID(self):
+        con=self.startCon()
+        Id_p=self.P_ID.get()
+        if(Id_p==""):
+            tmsg.showinfo('insert', "Please Enter patient_id")
         else:
-            if (self.chooseNu == 1):#New Patient
-                tmsg.showinfo('adding Succeesful',"adding Succeesful")
-                # Testframe/window
-            elif (self.chooseNu == 2):
-                tmsg.showerror('Error',"Username Not Found")
-        con.commit()
+               cursor = con.cursor()
+               cursor.execute("SELECT * FROM patient WHERE patient_id='"+Id_p+"'")
+               result = cursor.fetchall()
+               if result:
+                   if (self.chooseNu == 1):#new patient
+                       tmsg.showerror("Error","Data Already Found")
+                   else:
+                    testframe(root,2)
+               else:
+                   if (self.chooseNu == 1):#new patient
+                    self.add_New_patient(Id_p)
+                    testframe(root, 1)
+                   else:
+                       tmsg.showerror("Error", "Data not Found")
+
+
         con.close()
 
-    def add_New_patient(self,Id_p):
-        con = sq.connect("data.db")
-        cursor = con.cursor()
-        cursor.execute("INSERT INTO patient VALUES()", (Id_p))
-        con.commit()
-        con.close()
-        self.succees2()
+    #def add_New_patient(self):
 
 
 def  uploadImagebtnFunction():
