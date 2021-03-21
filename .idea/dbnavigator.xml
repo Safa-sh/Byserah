@@ -26,13 +26,13 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="341b7457-7541-483f-b3c6-35ca3f4ed471">
-        <schema name="basyrah" object-types="column, function, constraint, procedure, dataset trigger, view, index, table" />
+        <schema name="basyrahpg" object-types="function, procedure, table, view" />
       </connection>
     </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="341b7457-7541-483f-b3c6-35ca3f4ed471">
-      <console name="NewCon" type="STANDARD" schema="basyrah" session="Main"><![CDATA[SELECT * FROM patient where patient_id=1]]></console>
+      <console name="NewCon" type="STANDARD" schema="basyrahpg" session="Main"><![CDATA[SELECT * FROM patient]]></console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
@@ -92,7 +92,7 @@
           <deprecated-pwd value="ODk3Nzc0OQ==" />
         </database>
         <properties>
-          <auto-commit value="false" />
+          <auto-commit value="true" />
         </properties>
         <ssh-settings>
           <active value="false" />
