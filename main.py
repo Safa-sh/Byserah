@@ -3,7 +3,9 @@ from PIL import ImageTk, Image
 from tkinter import filedialog
 import tkinter.messagebox as tmsg
 import mysql.connector as mysql
-import webbrowser as wb
+from fpdf import FPDF
+import time
+import datetime
 root = Tk()
 def designTem(Tk,app_width,app_height):
     screen_width = Tk.winfo_screenwidth()
@@ -38,7 +40,7 @@ class testframe:
 
     def View(self):
         designTem(self.patientTest_window, 300, 300)
-        NewTestbtn = Button(self.patientTest_window, text="new test ", width=17,height=2, bg="white",fg="purple")
+        NewTestbtn = Button(self.patientTest_window, text="new test ", width=17,height=2, bg="white",fg="purple",command=self.TestSelect)
         NewTestbtn.place(x=90, y=90)
         showPreResbtn = Button(self.patientTest_window, text="show previous result", width=17,height=2, bg="white",fg="purple")
         showPreResbtn.place(x=90, y=160)
@@ -47,6 +49,62 @@ class testframe:
         else:
              showPreResbtn.configure(state=NORMAL)
 
+    def TestSelect(self):
+        previewImageWin = Toplevel(bg="white")
+        app_width = 600
+        app_height = 500
+        screen_width = previewImageWin.winfo_screenwidth()
+        screen_height = previewImageWin.winfo_screenheight()
+        x = (screen_width / 2) - (app_width / 2)
+        y = (screen_height / 2) - (app_height / 2)
+        previewImageWin.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+        previewImageWin.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+        previewImageWin.resizable(width=False, height=False)
+        previewImageWin.iconbitmap('images/logo.ico')
+        def get_image():
+            previewImageWin.filename = filedialog.askopenfilename(initialdir="results",
+                                                                  title="Select a result",
+                                                                  filetype=(
+                                                                      ("png files", "*.png"), ("all files", "*.*")))
+            previewImageL = Image.open(previewImageWin.filename)
+           #get image
+            resized = previewImageL.resize((400, 400), Image.ANTIALIAS)
+            newsize = ImageTk.PhotoImage(resized)
+            lbl.config(image=newsize)
+            lbl.image=newsize
+
+        lbl=Label(previewImageWin,text="Enter preview Image ",pady= 200,padx = 230,bd=2,relief='groove')
+        lbl.pack()
+        # lbl.place(x=200, y=100)
+        previewImagbtn = Button(previewImageWin, text = "Preview Image", font=('Abadi', 11),width = 12, height = 1, bg = "white",  fg = "purple",command=get_image)
+        previewImagbtn.place(x=300,y=450)
+        Testbtn = Button(previewImageWin, text="Test ",font=('Abadi', 11), width=12, height=1, bg="white", fg="purple")
+        Testbtn.place(x=150, y=450)
+
+
+    def createPDF(self):
+        pdf = FPDF()
+        # Add a page
+        pdf.add_page()
+        pdf.set_font("Arial")
+        # header
+        pdf.image("images/ImagLogo.GIF", 10, 8, 25)
+        # create a cell
+        pdf.cell(0, 10, "TITLE", border=False, ln=1, align="C")
+        pdf.ln(20)
+        pdf.line(50, 18, 210 - 20, 18)
+        pdf.cell(180, 30, txt="Paitant name :",
+                 ln=1, align='L')
+        pdf.cell(180, 30, txt=datetime.date.today().strftime("%d-%m-%y"),
+                 ln=1, align='L')
+        pdf.set_auto_page_break(auto=True, margin=15)
+        # footer
+        pdf.set_y(270)
+        pdf.cell(0, 10, f'Page {pdf.page_no()}/nb', align='C')
+        pdf.alias_nb_pages(alias='nb')
+        # add another cell
+        pdf.cell(200, 10, txt="", ln=23, align='A')
+        pdf.output("results"+self.P_ID+".pdf")
 class  patientDB:
     def startCon(self):
         con = mysql.connect(
@@ -115,7 +173,6 @@ class  patientDB:
         #except EXCEPTION as err:
         con.commit()
         con.close()
-
 def  uploadImagebtnFunction():
     choose_window = Toplevel(root, bg='white')
     designTem(choose_window,350,350)
@@ -131,11 +188,11 @@ def  uploadImagebtnFunction():
           patientDB(root,"Previous patient",2)
 
       # checkID(ID)
-    Label(choose_window,text="Are you :", font=('Calibri', 12),bg="white",justify="right").pack()
+    Label(choose_window,text="Are you :", font=('Calibri', 13),bg="white").place(x=50,y=80)
     option = IntVar()
-    Radiobutton(choose_window,text="New patient",fg="purple" ,bg="white",font=('Calibri', 14),variable=option,value=1).pack()
-    Radiobutton(choose_window, text="Previous patient.",fg="purple" ,bg="white",font=('Calibri', 14), variable=option, value=2).pack()
-    submtbtn = Button(choose_window,text="Submit",width=15,height=1,bg="white",command=click)
+    Radiobutton(choose_window,text="New patient",fg="purple" ,bg="white",font=('Calibri', 14),variable=option,value=1).place(x=110, y=120)
+    Radiobutton(choose_window, text="Previous patient.",fg="purple" ,bg="white",font=('Calibri', 14), variable=option, value=2).place(x=110, y=160)
+    submtbtn = Button(choose_window,text="Submit",font=('Calibri', 11),width=15,height=1,bg="white",command=click)
     submtbtn.place(x=110, y=230)
 def main():
     # Main window
@@ -167,15 +224,19 @@ def main():
     my_canvas.pack(pady=90)
     # Buttons
     def donResbtnFunction():
-        root.filename = filedialog.askopenfilename(initialdir="C: \Interfaces\images",
+        root.filename = filedialog.askopenfilename(initialdir="results",
                                                    title="Select a result",
                                                    filetype=(("pdf files", "*.pdf"), ("all files", "*.*")))
+
     Button(root, text="Upload Image",font=('Calibri', 12),width=20,height=2,command=uploadImagebtnFunction,bg="white").place(x=70, y=450)
     Button(root, text="Download result",font=('Calibri', 12),width=20,height=2,command=donResbtnFunction,bg="white").place(x=550, y=450)
     root.mainloop()
-
 if __name__ == '__main__':
     main()
+
+
+
+
 
 
 
