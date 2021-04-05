@@ -5,7 +5,7 @@ import datetime
 pdf = FPDF()
 pdf.add_page()
 pdf.set_font('Arial', 'B', 18)
-# header
+#  header
 pdf.image("images/ImagLogo.GIF", 170, 3, 25)
 pdf.cell(0, 10, "Report", border=False, ln=1, align="C")
 pdf.ln()
