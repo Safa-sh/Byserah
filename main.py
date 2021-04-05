@@ -4,6 +4,7 @@ from tkinter import filedialog
 import tkinter.messagebox as tmsg
 import mysql.connector as mysql
 from fpdf import FPDF
+
 import datetime
 root = Tk()
 def designTem(Tk,app_width,app_height):
@@ -34,6 +35,7 @@ class testframe:
         self.patientTest_window .geometry('500x500')
         self.patientTest_window .title("patientTest_window")
         self.P_ID= StringVar()
+        self.imagePa=""
         self.type_p=type_p
         self.View()
 
@@ -65,6 +67,7 @@ class testframe:
                                                                   title="Select a result",
                                                                   filetype=(
                                                                       ("png files", "*.png"), ("all files", "*.*")))
+            self.imagePa = previewImageWin.filename
             previewImageL = Image.open(previewImageWin.filename)
            #get image
             resized = previewImageL.resize((400, 400), Image.ANTIALIAS)
@@ -83,27 +86,43 @@ class testframe:
     # def Test(self):
     def createPDF(self):
         pdf = FPDF()
-        # Add a page
         pdf.add_page()
-        pdf.set_font("Arial")
+        pdf.set_font('Arial', 'B', 18)
         # header
-        pdf.image("images/ImagLogo.GIF", 10, 8, 25)
-        # create a cell
-        pdf.cell(0, 10, "TITLE", border=False, ln=1, align="C")
-        pdf.ln(20)
-        pdf.line(50, 18, 210 - 20, 18)
-        pdf.cell(180, 30, txt="Paitant name :",
-                 ln=1, align='L')
-        pdf.cell(180, 30, txt=datetime.date.today().strftime("%d-%m-%y"),
-                 ln=1, align='L')
-        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.image("images/ImagLogo.GIF", 170, 3, 25)
+        pdf.cell(0, 10, "Report", border=False, ln=1, align="C")
+        pdf.ln()
+        #####General Information
+        pdf.set_font('Arial', 'B', 12)
+        pdf.set_fill_color(213, 201, 239)
+        pdf.cell(0, 9, 'General Information', 0, 1, 'L', 1)
+        pdf.ln(3)
+        pdf.line(8, 20, 150, 20)
+        pdf.set_font('Arial', 'IB', 13)
+        pdf.cell(130, 10, txt="Paitant ID :  ",
+                 ln=1, align='E', )
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(130, 10, txt="Check up No:", align="W")
+        pdf.cell(100, 10, txt=" Test Result Data: " + datetime.date.today().strftime("%d-%m-%y"),
+                 ln=1, align="E")
+        ##Result
+        pdf.ln()
+        pdf.set_font('Arial', 'B', 12)
+        pdf.set_fill_color(213, 201, 239)
+        pdf.cell(0, 9, ' Result Infromation', 0, 1, 'L', 1)
+        pdf.image(self.imagePa, 90, 100, 100)
+        pdf.ln()
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(0, 10, txt=" The disease is ", align="W")
+
         # footer
+        pdf.set_font('Arial', '', 13)
+        pdf.set_auto_page_break(auto=True, margin=15)
         pdf.set_y(270)
-        pdf.cell(0, 10, f'Page {pdf.page_no()}/nb', align='C')
+        pdf.cell(0, 10, f'Page {pdf.page_no()}/nb', align="C")
         pdf.alias_nb_pages(alias='nb')
         # add another cell
-        pdf.cell(200, 10, txt="", ln=23, align='A')
-        pdf.output("results"+self.P_ID+".pdf")
+        pdf.output("results/" + self.P_ID + ".pdf")
 class  patientDB:
     def startCon(self):
         con = mysql.connect(
@@ -171,14 +190,6 @@ class  patientDB:
         #except EXCEPTION as err:
         con.commit()
         con.close()
-
-
-
-
-
-
-
-
 
 
 def  uploadImagebtnFunction():

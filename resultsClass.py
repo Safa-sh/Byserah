@@ -1,17 +1,12 @@
-from tkinter import *
-from PIL import ImageTk, Image
-from tkinter import filedialog
-import tkinter.messagebox as tmsg
-import mysql.connector as mysql
+from main import *
 from fpdf import FPDF
 import datetime
-root = Tk()
+
 pdf = FPDF()
 pdf.add_page()
 pdf.set_font('Arial', 'B', 18)
-    # header
+# header
 pdf.image("images/ImagLogo.GIF", 170, 3, 25)
-    # create a cell
 pdf.cell(0, 10, "Report", border=False, ln=1, align="C")
 pdf.ln()
 #####General Information
@@ -32,13 +27,17 @@ pdf.ln()
 pdf.set_font('Arial', 'B', 12)
 pdf.set_fill_color(213, 201, 239)
 pdf.cell(0, 9, ' Result Infromation', 0, 1, 'L', 1)
-pdf.image("images/example.jpg", 15, 100, 100)
+pdf.image("images/example.jpg", 90, 100, 100)
+pdf.ln()
+pdf.set_font('Arial','B' , 16)
+pdf.cell(0, 10, txt=" The disease is ", align="W")
 
 # footer
+pdf.set_font('Arial','' , 13)
 pdf.set_auto_page_break(auto=True, margin=15)
 pdf.set_y(270)
 pdf.cell(0, 10, f'Page {pdf.page_no()}/nb', align="C")
 pdf.alias_nb_pages(alias='nb')
-    # add another cell
-pdf.cell(200, 10, txt="", ln=23, align='A')
-pdf.output("results/TEST.pdf")
+# add another cell
+P = testframe()
+pdf.output("results/"+str(P.P_ID)+".pdf")
