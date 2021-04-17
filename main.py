@@ -4,9 +4,18 @@ from tkinter import filedialog
 import tkinter.messagebox as tmsg
 import mysql.connector as mysql
 from fpdf import FPDF
-
 import datetime
+import os
 root = Tk()
+def startCon():
+    con = mysql.connect(
+        host="localhost",
+        port="3308",
+        user="root",
+        passwd="8977749",
+        database="basyrahpg")
+    return con
+#-----------Design Template------------#
 def designTem(Tk,app_width,app_height):
     screen_width = Tk.winfo_screenwidth()
     screen_height = Tk.winfo_screenheight()
@@ -16,20 +25,11 @@ def designTem(Tk,app_width,app_height):
     Tk.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
     Tk.resizable(width=False, height=False)
     Tk.iconbitmap('images/logo.ico')
-    # line drawn
     my_canvas = Canvas(Tk, width=300, height=10, bg="white")
     my_canvas.create_line(0, 10, 300, 10, fill="purple")
     my_canvas.pack(pady=50)
+#-----------Test Frame Class------------#
 class testframe:
-    def startCon(self):
-         con = mysql.connect(
-            host="localhost",
-            port="3308",
-            user="root",
-            passwd="8977749",
-            database="basyrahpg")
-
-         return con
     def __init__(self,root,type_p,P_ID):
         self.patientTest_window= Toplevel(root, bg="white")
         self.patientTest_window .geometry('500x500')
@@ -63,10 +63,10 @@ class testframe:
         previewImageWin.resizable(width=False, height=False)
         previewImageWin.iconbitmap('images/logo.ico')
         def get_image():
-            previewImageWin.filename = filedialog.askopenfilename(initialdir="results",
+            previewImageWin.filename = filedialog.askopenfilename(parent=previewImageWin,initialdir="results",
                                                                   title="Select a result",
                                                                   filetype=(
-                                                                      ("png files", "*.png"), ("all files", "*.*")))
+                                                                      ("png files", "*.jpg"), ("all files", "*.*")))
             self.imagePa = previewImageWin.filename
             previewImageL = Image.open(previewImageWin.filename)
            #get image
@@ -123,15 +123,8 @@ class testframe:
         pdf.alias_nb_pages(alias='nb')
         # add another cell
         pdf.output("results/" + self.P_ID + ".pdf")
+#-----------Patient Frame Class - هنا يتاكد من الايدي لليورز------------#
 class  patientDB:
-    def startCon(self):
-        con = mysql.connect(
-              host="localhost",
-              port="3308",
-              user="root",
-              passwd="8977749",
-              database="basyrahpg")
-        return con
     def __init__(self,choose_window,title,chooseNu):
         self.patientID_window= Toplevel(choose_window, bg="white")
         self.patientID_window .title(title)
@@ -139,8 +132,10 @@ class  patientDB:
         labal1.place(x=91, y=5)
         self.P_ID= StringVar()
         self.chooseNu=chooseNu
-        self.View()
-    def View(self):
+        self.GUI_Of_Frame()
+
+    # ----------GUI -----------#
+    def GUI_Of_Frame(self):
       designTem(self.patientID_window, 300, 300)
       def on_click(event):
          patientIDEntry .configure(state=NORMAL)
@@ -154,9 +149,10 @@ class  patientDB:
       patientIDEntry.pack()
       submtbtn = Button(self.patientID_window, text="Submit", width=15, height=1, bg="white",command=self.find_patientID)
       submtbtn.place(x=95, y=230)
-    #=============================find_patientID
+      patientID_window.bind('<Return>', self.find_patientID)
+    #-------find_patientID------#
     def find_patientID(self):
-        con=self.startCon()
+        con=startCon()
         Id_p=self.P_ID.get()
         if(len(Id_p)==0):
             tmsg.showinfo('insert', "Please Enter patient_id",parent=self.patientID_window)
@@ -165,21 +161,23 @@ class  patientDB:
                cursor.execute("SELECT patient_id FROM patient WHERE patient_id='"+Id_p+"'")
                result = cursor.fetchall()
                if result and (self.chooseNu == 1):#new patient
-                tmsg.showerror("Error","Data Already Found",parent=self.patientID_window)
+                tmsg.showerror("Error","Patient ID Already Found",parent=self.patientID_window)
                elif not result and(self.chooseNu == 1):
                    self.add_New_patient(Id_p)
+                   self.patientID_window.withdraw()
                    testframe(root, 1,Id_p)
                elif result and (self.chooseNu == 2):#previous patient
-                      testframe(root,2,Id_p)
+                    self.patientID_window.withdraw()
+                    testframe(root,2,Id_p)
+
                elif not result and(self.chooseNu == 2):#previous patient
-                  a=tmsg.askquestion("","do you add it as new patiant ?",parent=self.patientID_window)
+                  a=tmsg.askquestion("","Do you want add it as new patiant ?",parent=self.patientID_window)
                   if a=='yes':
                       self.add_New_patient()
         con.close()
-
     def add_New_patient(self,Id_p):
-       #try:
-        con = self.startCon()
+
+        con =startCon()
         cursor = con.cursor()
         inserSQL="""INSERT INTO patient(patient_id,total_checkup) VALUES (%s,%s)"""
         initlv=0
@@ -187,32 +185,38 @@ class  patientDB:
         res=cursor.execute(inserSQL,data)
         if res:
             print("donnne ")
-        #except EXCEPTION as err:
         con.commit()
         con.close()
-
 
 def  uploadImagebtnFunction():
     choose_window = Toplevel(root, bg='white')
     designTem(choose_window,350,350)
     welcomLebal = Label(choose_window, text="WELCOME TO BASYRAH", font=('Calibri', 14), bg="white")
     welcomLebal.place(x=80, y=10)
-    def click():
+    def click(event=None):
         if(option.get()==1):
-
+            choose_window.withdraw()
             patientDB(choose_window,"New patient",1)
 
         else:
-
+          choose_window.withdraw()
           patientDB(choose_window,"Previous patient",2)
-
-      # checkID(ID)
+          # checkID(ID)
     Label(choose_window,text="Are you :", font=('Calibri', 13),bg="white").place(x=50,y=80)
     option = IntVar()
     Radiobutton(choose_window,text="New patient",fg="purple" ,bg="white",font=('Calibri', 14),variable=option,value=1).place(x=110, y=120)
     Radiobutton(choose_window, text="Previous patient.",fg="purple" ,bg="white",font=('Calibri', 14), variable=option, value=2).place(x=110, y=160)
     submtbtn = Button(choose_window,text="Submit",font=('Calibri', 11),width=15,height=1,bg="white",command=click)
     submtbtn.place(x=110, y=230)
+    choose_window.bind('<Return>', click)
+def donResbtnFunction():
+    root.filename = filedialog.askopenfilename(initialdir="results",
+                                                   title="Select a result",
+                                                  filetype=(("pdf files", "*.pdf"), ("all files", "*.*")))
+    fileName=root.filename
+    print(fileName)
+    # os.system("start " + fileName)
+    os.startfile(fileName)
 def main():
     # Main window
     app_width = 800
@@ -242,22 +246,10 @@ def main():
     my_canvas.create_line(0, 10, 700, 10, fill="purple")
     my_canvas.pack(pady=90)
     # Buttons
-    def donResbtnFunction():
-        root.filename = filedialog.askopenfilename(initialdir="results",
-                                                   title="Select a result",
-                                                   filetype=(("pdf files", "*.pdf"), ("all files", "*.*")))
+
 
     Button(root, text="Upload Image",font=('Calibri', 12),width=20,height=2,command=uploadImagebtnFunction,bg="white").place(x=70, y=450)
     Button(root, text="Download result",font=('Calibri', 12),width=20,height=2,command=donResbtnFunction,bg="white").place(x=550, y=450)
     root.mainloop()
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
