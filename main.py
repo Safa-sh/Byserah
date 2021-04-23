@@ -6,6 +6,9 @@ import mysql.connector as mysql
 from fpdf import FPDF
 import datetime
 import os
+import cv2
+import numpy as np
+from tensorflow import keras
 root = Tk()
 def startCon():
     con = mysql.connect(
@@ -34,24 +37,46 @@ class testframe:
         self.patientTest_window= Toplevel(root, bg="white")
         self.patientTest_window .geometry('500x500')
         self.patientTest_window .title("patientTest_window")
-        self.P_ID= StringVar()
+        self.P_ID=P_ID
         self.imagePa=""
+        self.result=""
         self.type_p=type_p
         self.View()
+
+    def modelTest(self):
+        try:
+            image_shape = 224
+            test_model = keras.models.load_model('final-model-last.h5')
+            img = cv2.imread(self.imagePa)
+            img = img / 255
+            img = cv2.resize(img, (image_shape, image_shape))
+            img = np.reshape(img, [1, image_shape, image_shape, 3])
+            result = np.argmax(test_model.predict(img))
+            if (result == 0):
+                self.result = "Normal"
+            elif (result == 1):
+                self.result = "Diabetic reinopathy"
+            elif (result == 2):
+                self.result = "age-relate macular degeneration"
+            self.createPDF()
+        except:
+            tmsg.showerror("Error", "Invaild image ")
+
+
 
     def View(self):
         designTem(self.patientTest_window, 300, 300)
         NewTestbtn = Button(self.patientTest_window, text="new test ", width=17,height=2, bg="white",fg="purple",command=self.TestSelect)
         NewTestbtn.place(x=90, y=90)
-        showPreResbtn = Button(self.patientTest_window, text="show previous result", width=17,height=2, bg="white",fg="purple")
+        showPreResbtn = Button(self.patientTest_window, text="show previous result", width=17,height=2, bg="white",fg="purple",command=donResbtnFunction)
         showPreResbtn.place(x=90, y=160)
-        if (self.type_p == 1):
+        if (self.type_p == 1):#new patine
             showPreResbtn.configure(state=DISABLED)
         else:
              showPreResbtn.configure(state=NORMAL)
 
     def TestSelect(self):
-        previewImageWin = Toplevel(bg="white")
+        previewImageWin = Toplevel(self.patientTest_window,bg="white")
         app_width = 600
         app_height = 500
         screen_width = previewImageWin.winfo_screenwidth()
@@ -62,11 +87,12 @@ class testframe:
         previewImageWin.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
         previewImageWin.resizable(width=False, height=False)
         previewImageWin.iconbitmap('images/logo.ico')
+
         def get_image():
-            previewImageWin.filename = filedialog.askopenfilename(parent=previewImageWin,initialdir="results",
+            previewImageWin.filename = filedialog.askopenfilename(parent=previewImageWin,initialdir="Fundus_Test_data",
                                                                   title="Select a result",
                                                                   filetype=(
-                                                                      ("png files", "*.jpg"), ("all files", "*.*")))
+                                                                      ("png files", "*.png"), ("all files", "*.*")))
             self.imagePa = previewImageWin.filename
             previewImageL = Image.open(previewImageWin.filename)
            #get image
@@ -74,13 +100,12 @@ class testframe:
             newsize = ImageTk.PhotoImage(resized)
             lbl.config(image=newsize)
             lbl.image=newsize
-
         lbl=Label(previewImageWin,text="Enter preview Image ",pady= 200,padx = 230,bd=2,relief='groove')
         lbl.pack()
         # lbl.place(x=200, y=100)
         previewImagbtn = Button(previewImageWin, text = "Preview Image", font=('Abadi', 11),width = 12, height = 1, bg = "white",  fg = "purple",command=get_image)
         previewImagbtn.place(x=300,y=450)
-        Testbtn = Button(previewImageWin, text="Test ",font=('Abadi', 11), width=12, height=1, bg="white", fg="purple")#call Test
+        Testbtn = Button(previewImageWin, text="Test ",font=('Abadi', 11), width=12, height=1, bg="white", fg="purple",command=self.modelTest)#call Test
         Testbtn.place(x=150, y=450)
 
     # def Test(self):
@@ -99,7 +124,7 @@ class testframe:
         pdf.ln(3)
         pdf.line(8, 20, 150, 20)
         pdf.set_font('Arial', 'IB', 13)
-        pdf.cell(130, 10, txt="Paitant ID :  ",
+        pdf.cell(130, 10, txt="Paitant ID :  "+self.P_ID+" ",
                  ln=1, align='E', )
         pdf.set_font('Arial', 'B', 12)
         pdf.cell(130, 10, txt="Check up No:", align="W")
@@ -113,7 +138,7 @@ class testframe:
         pdf.image(self.imagePa, 90, 100, 100)
         pdf.ln()
         pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, txt=" The disease is ", align="W")
+        pdf.cell(0, 10, txt=" The disease is "+self.result+"" ,align="W")
 
         # footer
         pdf.set_font('Arial', '', 13)
@@ -123,6 +148,7 @@ class testframe:
         pdf.alias_nb_pages(alias='nb')
         # add another cell
         pdf.output("results/" + self.P_ID + ".pdf")
+        #----#
 #-----------Patient Frame Class - هنا يتاكد من الايدي لليورز------------#
 class  patientDB:
     def __init__(self,choose_window,title,chooseNu):
@@ -149,7 +175,7 @@ class  patientDB:
       patientIDEntry.pack()
       submtbtn = Button(self.patientID_window, text="Submit", width=15, height=1, bg="white",command=self.find_patientID)
       submtbtn.place(x=95, y=230)
-      patientID_window.bind('<Return>', self.find_patientID)
+      self.patientID_window.bind('<Return>', self.find_patientID)
     #-------find_patientID------#
     def find_patientID(self):
         con=startCon()
@@ -187,7 +213,6 @@ class  patientDB:
             print("donnne ")
         con.commit()
         con.close()
-
 def  uploadImagebtnFunction():
     choose_window = Toplevel(root, bg='white')
     designTem(choose_window,350,350)
@@ -210,11 +235,10 @@ def  uploadImagebtnFunction():
     submtbtn.place(x=110, y=230)
     choose_window.bind('<Return>', click)
 def donResbtnFunction():
-    root.filename = filedialog.askopenfilename(initialdir="results",
+    filename = filedialog.askopenfilename(initialdir="results",
                                                    title="Select a result",
                                                   filetype=(("pdf files", "*.pdf"), ("all files", "*.*")))
     fileName=root.filename
-    print(fileName)
     # os.system("start " + fileName)
     os.startfile(fileName)
 def main():
@@ -249,7 +273,7 @@ def main():
 
 
     Button(root, text="Upload Image",font=('Calibri', 12),width=20,height=2,command=uploadImagebtnFunction,bg="white").place(x=70, y=450)
-    Button(root, text="Download result",font=('Calibri', 12),width=20,height=2,command=donResbtnFunction,bg="white").place(x=550, y=450)
+    # Button(root, text="Download result",font=('Calibri', 12),width=20,height=2,command=donResbtnFunction,bg="white").place(x=550, y=450)
     root.mainloop()
 if __name__ == '__main__':
     main()
